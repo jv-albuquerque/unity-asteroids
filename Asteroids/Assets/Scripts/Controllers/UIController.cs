@@ -28,6 +28,15 @@ public class UIController : MonoBehaviour
     [SerializeField] private Color lifeOff;
     [SerializeField] private List<Image> lifesImage;
 
+    public void StartGame()
+    {
+        DeactiveCanvasGroup(mainMenuUI);
+        DeactiveCanvasGroup(endGameUI);
+        ActiveCanvasGroup(gameUI);
+        UpdateLevel(1);
+        highScoreText.text = GameController.Instance.Data.highScore.ToString();
+    }
+
     public void UpdatePoints(int points)
     {
         scoreText.text = points.ToString();
@@ -56,15 +65,6 @@ public class UIController : MonoBehaviour
     public void UpdateLevel(int level)
     {
         levelText.text = "level " + level;
-    }
-
-    public void StartGame()
-    {
-        DeactiveCanvasGroup(mainMenuUI);
-        DeactiveCanvasGroup(endGameUI);
-        ActiveCanvasGroup(gameUI);
-        UpdateLevel(1);
-        highScoreText.text = GameController.Instance.Data.highScore.ToString();
     }
 
     public void OnMainMenu()

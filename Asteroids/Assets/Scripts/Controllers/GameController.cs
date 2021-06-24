@@ -159,9 +159,12 @@ public class GameController : MonoBehaviour
         ufoSpawnCooldown = Random.Range(8.0f, 12.0f);
     }
 
-    public void AsteroidDestoyed(int pointsToAdd, bool destroyedByPlayer)
+    public void ObjectDestoyed(int pointsToAdd, bool destroyedByPlayer, bool isAsteroid = true)
     {
-        destroyedAsteroids++;
+        if(isAsteroid)
+        {
+            destroyedAsteroids++;
+        }
 
         if(destroyedByPlayer)
         {            

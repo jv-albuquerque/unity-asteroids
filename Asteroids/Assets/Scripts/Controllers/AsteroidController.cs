@@ -75,7 +75,7 @@ public class AsteroidController : GenericSpaceObject
         {
             for (int i = 0; i < 2; i++)
             {
-                float newAngle = moveAngle + Random.Range(-45, 45);
+                float newAngle = moveAngle + Random.Range(-90, 90);
 
                 Vector2 dir = GenericUtilities.Rotate(Vector2.right, newAngle);
                 Vector2 pos = (Vector2)transform.position + dir * Random.Range(0.1f, 0.75f);
@@ -87,7 +87,7 @@ public class AsteroidController : GenericSpaceObject
             }
         }
 
-        gameController.AsteroidDestoyed(pointsToAdd[(int)size - 1], shootByPlayer);
+        gameController.ObjectDestoyed(pointsToAdd[(int)size - 1], shootByPlayer);
 
         SoundController.PlayOneShot(explosions[(int)size - 1]);
 

@@ -9,6 +9,8 @@ public class PlayerController : MonoBehaviour
 
     [SerializeField] private List<AudioClip> explosions;
 
+    [SerializeField] private GameObject bulletObject;
+
     private Rigidbody2D rb;
 
     private ShipInfo ship;
@@ -22,9 +24,9 @@ public class PlayerController : MonoBehaviour
     private Collider2D coll;
 
     private bool dead = false;
+    public bool Dead { get => dead; }
     
     private bool canPlayMotorAudio = true;
-
 
 
     private void Awake()
@@ -97,7 +99,7 @@ public class PlayerController : MonoBehaviour
 
     private void RotateShip()
     {
-        transform.RotateAround(transform.position, Vector3.forward, clockwise* ship.RotationForce * Time.deltaTime);
+        transform.RotateAround(transform.position, Vector3.forward, clockwise* ship.RotationForce * Time.fixedDeltaTime);
     }
 
     public void OnRotate(InputAction.CallbackContext value)
@@ -123,24 +125,25 @@ public class PlayerController : MonoBehaviour
     public void OnShoot(InputAction.CallbackContext value)
     {
         if (dead)
-            return;
+            return;        
 
         if (value.started)
         {
-            List<Transform> shootPositions = ship.ShootPos;
+            Vector2 velocity = transform.up;
+            Vector2 shootSpot = (velocity * 1.1f) + (Vector2)transform.position;
 
-            foreach (var shootPosition in shootPositions)
-            {
-                var bullet = Instantiate(ship.Bullet, shootPosition.position, transform.rotation).GetComponent<BulletController>();
+            var bullet = Instantiate(bulletObject, shootSpot, Quaternion.identity).GetComponent<BulletController>();
 
-                bullet.Shoot(transform.up);
-            }
+            bullet.Shoot(velocity);
 
             Vector2 force = -transform.up * ship.Recoil;
             rb.AddForce(force);
 
             SoundController.PlayOneShot(ship.ShootAudio);
+
         }
+
+
     }
 
     public void KillPlayer()

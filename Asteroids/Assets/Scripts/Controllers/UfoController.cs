@@ -130,7 +130,7 @@ public class UfoController : GenericSpaceObject
     {
         SoundController.PlayOneShot(explosions[Random.Range(0, explosions.Count)]);
 
-        gameController.AsteroidDestoyed(points, shootByPlayer);
+        gameController.ObjectDestoyed(points, shootByPlayer, false);
 
         DestroyObject();
     }

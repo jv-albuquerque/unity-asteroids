@@ -60,8 +60,12 @@ public class SoundController : MonoBehaviour
             musicIndex++;
             musicIndex = musicIndex >= musicAudios.Count ? 0 : musicIndex;
 
-            musicDelay -= 0.01f;
-            musicDelay = musicDelay <= 0 ? 0 : musicDelay;
+            if(!gameController.Player.Dead)
+            {
+                musicDelay -= 0.005f;
+                musicDelay = musicDelay <= 0.2f ? 0.2f : musicDelay;
+            }
+
         }
     }
 
