@@ -34,7 +34,8 @@ public class AsteroidController : GenericSpaceObject
 
     private void Start()
     {
-        gameController = GameController.Instance;       
+        gameController = GameController.Instance;
+        gameController.DestroyGameObjects += DestroyObject;
     }
 
     private void FixedUpdate()
@@ -90,7 +91,13 @@ public class AsteroidController : GenericSpaceObject
 
         SoundController.PlayOneShot(explosions[(int)size - 1]);
 
+        DestroyObject();
+    }
+
+    private void DestroyObject()
+    {
         Destroy(gameObject);
+        gameController.DestroyGameObjects -= DestroyObject;
     }
 
     private void OnTriggerEnter2D(Collider2D collision)

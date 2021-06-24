@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public delegate void Listener();
-
 public class PlayerController : MonoBehaviour
 {
     public Listener OnDeath = delegate { };
@@ -43,6 +41,14 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        if(!gameController.OnTheGame)
+        {
+            if(Input.anyKey)
+            {
+                gameController.StartGame();
+            }
+        }
+
         //Verify if need to wrap because the ship passed the screen edge
         if (rb.velocity.magnitude > 0)
         {
@@ -52,6 +58,9 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (dead)
+            return;
+
         if(accelerating)
         {
             MoveShip();
@@ -93,12 +102,6 @@ public class PlayerController : MonoBehaviour
 
     public void OnRotate(InputAction.CallbackContext value)
     {
-        if (dead)
-        {
-            gameController.StartGame();
-            return;
-        }
-
         clockwise = value.ReadValue<float>();
 
         //only to make the right button go clockwise
@@ -107,12 +110,6 @@ public class PlayerController : MonoBehaviour
 
     public void OnMove(InputAction.CallbackContext value)
     {
-        if (dead)
-        {
-            gameController.StartGame();
-            return;
-        }
-
         if (value.started)
         {
             accelerating = true;
@@ -126,10 +123,7 @@ public class PlayerController : MonoBehaviour
     public void OnShoot(InputAction.CallbackContext value)
     {
         if (dead)
-        {
-            gameController.StartGame();
             return;
-        }
 
         if (value.started)
         {
@@ -153,7 +147,6 @@ public class PlayerController : MonoBehaviour
     {
         coll.enabled = false;
         ship.Renderer.enabled = false;
-        accelerating = false;
         dead = true;
         SoundController.PlayOneShot(explosions[Random.Range(0, explosions.Count)]);
 
@@ -170,10 +163,8 @@ public class PlayerController : MonoBehaviour
     {
         transform.position = Vector2.zero;
 
-        clockwise = 0;
         transform.rotation = Quaternion.identity;
 
-        accelerating = false;
         rb.velocity = Vector2.zero;
 
         dead = false;

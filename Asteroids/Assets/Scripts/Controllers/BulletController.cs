@@ -22,12 +22,13 @@ public class BulletController : GenericSpaceObject
 
     void Start()
     {
-        Invoke("DestroyOnTime", timeToDie);
+        GameController.Instance.DestroyGameObjects += DestroyObject;
+        Invoke("DestroyObject", timeToDie);
     }
 
-    //TODO: Otimaization to create: preloaded gameObjects, and don't destroy, put in a stack able to be used (reuse gameObjects)
-    private void DestroyOnTime()
+    private void DestroyObject()
     {
+        GameController.Instance.DestroyGameObjects -= DestroyObject;
         Destroy(gameObject);
     }
 
@@ -51,6 +52,6 @@ public class BulletController : GenericSpaceObject
             collision.GetComponent<UfoController>().KillUfo(ShootByPlayer);
         }
 
-        Destroy(gameObject);
+        DestroyObject();
     }
 }

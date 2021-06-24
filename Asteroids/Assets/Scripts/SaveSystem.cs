@@ -28,9 +28,17 @@ public static class SaveSystem
             BinaryFormatter formatter = new BinaryFormatter();
             FileStream stream = new FileStream(path, FileMode.Open);
 
-            loadData = (GameData)formatter.Deserialize(stream);
+            if(stream.Length != 0)
+            {
+                loadData = (GameData)formatter.Deserialize(stream);
+            }
 
             stream.Close();
+        }
+
+        if(loadData == null)
+        {
+            loadData = new GameData();
         }
 
         return loadData;

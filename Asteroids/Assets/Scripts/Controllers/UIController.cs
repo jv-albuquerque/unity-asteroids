@@ -65,7 +65,6 @@ public class UIController : MonoBehaviour
         ActiveCanvasGroup(gameUI);
         UpdateLevel(1);
         highScoreText.text = GameController.Instance.Data.highScore.ToString();
-        GameController.Instance.OnTheGame = true;
     }
 
     public void OnMainMenu()
@@ -73,7 +72,6 @@ public class UIController : MonoBehaviour
         DeactiveCanvasGroup(gameUI);
         DeactiveCanvasGroup(endGameUI);
         ActiveCanvasGroup(mainMenuUI);
-        GameController.Instance.OnTheGame = false;
     }
 
     public void OnEndGame(bool isNewHighScore, int points)

@@ -33,7 +33,8 @@ public class UfoController : GenericSpaceObject
     private void Start()
     {
         gameController = GameController.Instance;
-        gameController.Player.OnDeath += DestroyUfo;
+        gameController.Player.OnDeath += DestroyObject;
+        gameController.DestroyGameObjects += DestroyObject;
     }
 
     protected override void UpdateCall()
@@ -42,7 +43,7 @@ public class UfoController : GenericSpaceObject
 
         if(Mathf.Abs(xLimit - transform.position.x) <= 0.1f)
         {
-            DestroyUfo();
+            DestroyObject();
         }
     }
 
@@ -131,12 +132,13 @@ public class UfoController : GenericSpaceObject
 
         gameController.AsteroidDestoyed(points, shootByPlayer);
 
-        DestroyUfo();
+        DestroyObject();
     }
 
-    public void DestroyUfo()
+    public void DestroyObject()
     {
-        gameController.Player.OnDeath -= DestroyUfo;
+        gameController.Player.OnDeath -= DestroyObject;
+        gameController.DestroyGameObjects -= DestroyObject;
         Destroy(gameObject);
     }
 }

@@ -2,9 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public delegate void Listener();
+
 public class GameController : MonoBehaviour
 {
     static public GameController Instance;
+
+    public Listener DestroyGameObjects = delegate { };
 
     [SerializeField] private PlayerController player;
     private UIController ui;
@@ -32,6 +36,10 @@ public class GameController : MonoBehaviour
     private float ufoSpawnCooldown = 8;
     private float ufoSpawnLastTick;
 
+    private UnityEngine.EventSystems.EventSystem eventSystem;
+
+
+
     private void Awake()
     {
         Singleton();
@@ -49,6 +57,9 @@ public class GameController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        GameObject myEventSystem = GameObject.Find("EventSystem");
+        eventSystem = myEventSystem.GetComponent<UnityEngine.EventSystems.EventSystem>();
+
         OnMainMenu();
     }
 
@@ -58,33 +69,6 @@ public class GameController : MonoBehaviour
         {
             SpawnUfo();
         }
-    }
-
-    public void StartGame()
-    {
-        if(onTheGame)
-        { 
-            return;
-        }
-
-        level = 1;        
-        ui.StartGame();
-        player.ResetShip();
-        soundController.StartGame();
-        ResetGame();
-        SpawnAsteroids();
-        ufoSpawnLastTick = Time.time;
-    }
-
-    public void OnMainMenu()
-    {
-        if(!onTheGame)
-        {
-            return;
-        }
-
-        player.DisableShip();
-        ui.OnMainMenu();
     }
 
     private void Singleton()
@@ -99,7 +83,25 @@ public class GameController : MonoBehaviour
         DontDestroyOnLoad(this);
     }
 
-    private void ResetGame()
+    public void StartGame()
+    {
+        if(onTheGame)
+        { 
+            return;
+        }
+
+        onTheGame = true;
+
+        level = 1;        
+        ui.StartGame();
+        player.ResetShip();
+        soundController.StartGame();
+        ResetGame();
+        SpawnAsteroids();
+        ufoSpawnLastTick = Time.time;
+    }
+
+    public void ResetGame()
     {
         level = 1;
         ui.UpdateLevel(level);
@@ -110,6 +112,19 @@ public class GameController : MonoBehaviour
 
         lifes = 5;
         ui.UpdateLifes(lifes);
+    }
+
+    public void OnMainMenu()
+    {
+        if(!onTheGame)
+        {
+            return;
+        }
+
+        player.DisableShip();
+        ui.OnMainMenu();
+
+        OnTheGame = false;
     }
 
     private void SpawnAsteroids()
@@ -193,6 +208,23 @@ public class GameController : MonoBehaviour
             ui.OnEndGame(isNewHighScore, points);
             SaveSystem.SaveData(data);
         }
+    }
+
+    public void BackToMainMenu()
+    {
+        eventSystem.SetSelectedGameObject(null);
+
+        DestroyGameObjects();
+        OnMainMenu();
+    }
+
+    public void RestartGame()
+    {
+        eventSystem.SetSelectedGameObject(null);
+
+        DestroyGameObjects();
+        onTheGame = false;
+        StartGame();
     }
 
     private void OnApplicationQuit()
