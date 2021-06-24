@@ -133,4 +133,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5756e0f3c14763f4a978a1dfa33cb6df, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 2
+  speed: 1
+  explosions:
+  - {fileID: 8300000, guid: 52c430ec11ef65346a190528816dd358, type: 3}
+  - {fileID: 8300000, guid: 4fb164be669823a408b20771695b327b, type: 3}
+  - {fileID: 8300000, guid: 9aa2975dc4dfbf14486b5958f161e0a3, type: 3}

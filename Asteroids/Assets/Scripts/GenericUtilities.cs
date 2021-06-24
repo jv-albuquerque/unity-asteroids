@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GenericUtilities
+public static class GenericUtilities
 {
-    public Bounds MainCameraBounds()
+    public static Bounds MainCameraBounds()
     {
         Camera camera = Camera.main;
 
@@ -19,20 +19,23 @@ public class GenericUtilities
         return bounds;
     }
 
-    public void WrapFromScreenEdge(Transform transform, float marginToWrap = 0)
+    public static void WrapFromScreenEdge(Transform transform, float marginToWrap = 0, bool wrapX = true)
     {
         Vector2 bounds = MainCameraBounds().extents;
         bounds += new Vector2(marginToWrap, marginToWrap);
 
         Vector2 pos = transform.position;
 
-        if(pos.x < -bounds.x)
+        if (wrapX)
         {
-            transform.position = new Vector2(bounds.x, pos.y);
-        }
-        else if(pos.x > bounds.x)
-        {
-            transform.position = new Vector2(-bounds.x, pos.y);
+            if (pos.x < -bounds.x)
+            {
+                transform.position = new Vector2(bounds.x, pos.y);
+            }
+            else if (pos.x > bounds.x)
+            {
+                transform.position = new Vector2(-bounds.x, pos.y);
+            }
         }
 
         if(pos.y < -bounds.y)
@@ -45,14 +48,14 @@ public class GenericUtilities
         }
     }
 
-    public float GetScreenWrapOffset(Renderer render)
+    public static float GetScreenWrapOffset(Renderer render)
     {
         Vector2 size = render.bounds.size;
         size /= 2; //this is made, because the pivot is in the center of the ship
         return size.x > size.y ? size.x : size.y;
     }
 
-    public Vector2 Rotate(Vector2 v, float degrees)
+    public static Vector2 Rotate(Vector2 v, float degrees)
     {
         float rad = degrees * Mathf.Deg2Rad;
 

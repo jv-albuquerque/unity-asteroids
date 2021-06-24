@@ -6,11 +6,11 @@ public class GameController : MonoBehaviour
 {
     static public GameController Instance;
 
-    [SerializeField] private GameObject player;
-    public GenericUtilities genericUtilities = new GenericUtilities();
+    [SerializeField] private PlayerController player;
     private UIController ui;
 
     [SerializeField] private GameObject asteroidObject;
+    [SerializeField] private GameObject ufoObject;
 
     private int level = 1;
 
@@ -18,19 +18,73 @@ public class GameController : MonoBehaviour
     private int points = 0;
     private int lifes = 5;
 
+    private GameData data;
+    public GameData Data { get => data; }
+
+    private bool onTheGame = true;
+    public bool OnTheGame { get => onTheGame; set => onTheGame = value; }
+
+    private SoundController soundController;
+    public SoundController GetSoundController { get => soundController; }
+    public PlayerController Player { get => player; }
+    public UIController Ui { get => ui; }
+
+    private float ufoSpawnCooldown = 8;
+    private float ufoSpawnLastTick;
 
     private void Awake()
     {
         Singleton();
 
         ui = GetComponent<UIController>();
+        soundController = GetComponent<SoundController>();
+
+        data = SaveSystem.LoadData();
+        if(data == null)
+        {
+            data = new GameData();
+        }
     }
 
     // Start is called before the first frame update
     void Start()
     {
-        SpawnAsteroids();
+        OnMainMenu();
+    }
+
+    private void Update()
+    {
+        if ((Time.time >= ufoSpawnLastTick + ufoSpawnCooldown) && onTheGame)
+        {
+            SpawnUfo();
+        }
+    }
+
+    public void StartGame()
+    {
+        if(onTheGame)
+        { 
+            return;
+        }
+
+        level = 1;        
+        ui.StartGame();
+        player.ResetShip();
+        soundController.StartGame();
         ResetGame();
+        SpawnAsteroids();
+        ufoSpawnLastTick = Time.time;
+    }
+
+    public void OnMainMenu()
+    {
+        if(!onTheGame)
+        {
+            return;
+        }
+
+        player.DisableShip();
+        ui.OnMainMenu();
     }
 
     private void Singleton()
@@ -48,19 +102,21 @@ public class GameController : MonoBehaviour
     private void ResetGame()
     {
         level = 1;
+        ui.UpdateLevel(level);
         destroyedAsteroids = 0;
 
         points = 0;
         ui.UpdatePoints(points);
 
         lifes = 5;
+        ui.UpdateLifes(lifes);
     }
 
     private void SpawnAsteroids()
     {
         int numAsteroids = level + 3;
 
-        Vector2 bounds = genericUtilities.MainCameraBounds().extents;
+        Vector2 bounds = GenericUtilities.MainCameraBounds().extents;
 
         for (int i = 0; i < numAsteroids; i++)
         {
@@ -71,10 +127,21 @@ public class GameController : MonoBehaviour
             }
 
             AsteroidController asteroid = Instantiate(asteroidObject, InstancePos, Quaternion.identity).GetComponent<AsteroidController>();
-            asteroid.SetVelocity(Random.Range(0, 360));
+            asteroid.Init();
         }
 
         destroyedAsteroids = 0;
+    }
+
+    private void SpawnUfo()
+    {
+        UfoController ufo = Instantiate(ufoObject, Vector2.zero, Quaternion.identity).GetComponent<UfoController>();
+
+        bool goingRight = Random.Range(0, 2) == 0 ? false : true;
+        ufo.Init(goingRight);
+
+        ufoSpawnLastTick = Time.time;
+        ufoSpawnCooldown = Random.Range(8.0f, 12.0f);
     }
 
     public void AsteroidDestoyed(int pointsToAdd, bool destroyedByPlayer)
@@ -95,6 +162,7 @@ public class GameController : MonoBehaviour
     private void NextLevel()
     {
         level++;
+        ui.UpdateLevel(level);
         SpawnAsteroids();
     }
 
@@ -107,14 +175,28 @@ public class GameController : MonoBehaviour
     public void PlayerDied()
     {
         lifes--;
+        ui.UpdateLifes(lifes);
 
-        if(lifes >= 0)
+        if (lifes >= 0)
         {
-            player.GetComponent<PlayerController>().ResetPlayer();
+            player.ResetShip();
         }
         else
         {
-            Debug.Log("End Game");
+            bool isNewHighScore = false;
+            if(data.highScore < points)
+            {
+                isNewHighScore = true;
+                data.highScore = points;
+            }
+
+            ui.OnEndGame(isNewHighScore, points);
+            SaveSystem.SaveData(data);
         }
+    }
+
+    private void OnApplicationQuit()
+    {
+        SaveSystem.SaveData(data);
     }
 }

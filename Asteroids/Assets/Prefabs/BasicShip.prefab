@@ -48,12 +48,14 @@ MonoBehaviour:
   render: {fileID: 1621801960828019523}
   maxVelocity: 7
   moveForce: 10
-  rotationForce: 150
+  rotationForce: 200
   recoil: 50
   bulletObject: {fileID: 523732117379937923, guid: 16e478d3e58d9e84bb3e4e908760f7fb,
     type: 3}
   shootPos:
   - {fileID: 6550518582920702064}
+  shootAudio: {fileID: 8300000, guid: 85b033b7dde8b1145bed93ac9ebbf8c1, type: 3}
+  motorAudio: {fileID: 8300000, guid: 05f89eed63e655c4dbdd9c37983a3f0e, type: 3}
 --- !u!1 &4898627431344769014
 GameObject:
   m_ObjectHideFlags: 0

@@ -3,8 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+public delegate void Listener();
+
 public class PlayerController : MonoBehaviour
 {
+    public Listener OnDeath = delegate { };
+
+    [SerializeField] private List<AudioClip> explosions;
+
     private Rigidbody2D rb;
 
     private ShipInfo ship;
@@ -15,22 +21,24 @@ public class PlayerController : MonoBehaviour
     private float clockwise = 0;
 
     private GameController gameController;
-    private GenericUtilities genericUtilities;
-    private Collider2D collider;
+    private Collider2D coll;
 
     private bool dead = false;
+    
+    private bool canPlayMotorAudio = true;
+
+
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         ship = GetComponentInChildren<ShipInfo>();
-        collider = GetComponent<Collider2D>();
+        coll = GetComponent<Collider2D>();
     }
 
     private void Start()
     {
         gameController = GameController.Instance;
-        genericUtilities = GameController.Instance.genericUtilities;
     }
 
     private void Update()
@@ -38,7 +46,7 @@ public class PlayerController : MonoBehaviour
         //Verify if need to wrap because the ship passed the screen edge
         if (rb.velocity.magnitude > 0)
         {
-            genericUtilities.WrapFromScreenEdge(transform, genericUtilities.GetScreenWrapOffset(ship.Renderer));
+            GenericUtilities.WrapFromScreenEdge(transform, GenericUtilities.GetScreenWrapOffset(ship.Renderer));
         }
     }
 
@@ -63,7 +71,19 @@ public class PlayerController : MonoBehaviour
 
         //Clamp Velocity
         if (rb.velocity.magnitude > ship.MaxVelocity)
-            rb.velocity = rb.velocity.normalized * ship.MaxVelocity;        
+            rb.velocity = rb.velocity.normalized * ship.MaxVelocity;
+        
+        if(canPlayMotorAudio)
+        {
+            SoundController.PlayOneShot(ship.MotorAudio);
+            canPlayMotorAudio = false;
+            Invoke("DelayMotorAudio", ship.MotorAudio.length);
+        }
+    }
+
+    private void DelayMotorAudio()
+    {
+        canPlayMotorAudio = true;
     }
 
     private void RotateShip()
@@ -75,6 +95,7 @@ public class PlayerController : MonoBehaviour
     {
         if (dead)
         {
+            gameController.StartGame();
             return;
         }
 
@@ -88,6 +109,7 @@ public class PlayerController : MonoBehaviour
     {
         if (dead)
         {
+            gameController.StartGame();
             return;
         }
 
@@ -105,6 +127,7 @@ public class PlayerController : MonoBehaviour
     {
         if (dead)
         {
+            gameController.StartGame();
             return;
         }
 
@@ -121,14 +144,20 @@ public class PlayerController : MonoBehaviour
 
             Vector2 force = -transform.up * ship.Recoil;
             rb.AddForce(force);
+
+            SoundController.PlayOneShot(ship.ShootAudio);
         }
     }
 
     public void KillPlayer()
     {
-        collider.enabled = false;
+        coll.enabled = false;
         ship.Renderer.enabled = false;
+        accelerating = false;
         dead = true;
+        SoundController.PlayOneShot(explosions[Random.Range(0, explosions.Count)]);
+
+        OnDeath();
         Invoke("TryResetPlayer", 1.0f);
     }
 
@@ -137,14 +166,25 @@ public class PlayerController : MonoBehaviour
         gameController.PlayerDied();
     }
 
-    public void ResetPlayer()
+    public void ResetShip()
     {
-        collider.enabled = true;
         transform.position = Vector2.zero;
+
+        clockwise = 0;
         transform.rotation = Quaternion.identity;
-        rb.velocity = Vector2.zero;
+
         accelerating = false;
+        rb.velocity = Vector2.zero;
+
         dead = false;
+        coll.enabled = true;
         ship.Renderer.enabled = true;
+    }
+
+    public void DisableShip()
+    {
+        coll.enabled = false;
+        ship.Renderer.enabled = false;
+        dead = true;
     }
 }

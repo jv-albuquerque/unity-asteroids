@@ -9,62 +9,56 @@ enum AsteroidSize
     Small = 3,
 }
 
-public class AsteroidController : MonoBehaviour
+public class AsteroidController : GenericSpaceObject
 {
-
-    [SerializeField] private float speed = 1;
+    [SerializeField] private float speed = 0.4f;
+    [SerializeField] private List<AudioClip> explosions;
 
     private AsteroidSize size = AsteroidSize.Big;
 
-    private Renderer render;
     private Rigidbody2D rb;
 
     private GameController gameController;
-    private GenericUtilities genericUtilities;
 
+    float maxVelocity;
     private Vector2 moveDirection;
     private float moveAngle;
 
     private List<int> pointsToAdd = new List<int>(new int[] { 20, 50, 100 });
 
-    private void Awake()
+    protected override void AwakenCall()
     {
+        base.AwakenCall();
         rb = GetComponent<Rigidbody2D>();
-        render = GetComponent<Renderer>();
     }
 
     private void Start()
     {
-        gameController = GameController.Instance;
-        genericUtilities = GameController.Instance.genericUtilities;        
-    }
-
-    private void Update()
-    {
-        genericUtilities.WrapFromScreenEdge(transform, genericUtilities.GetScreenWrapOffset(render));
+        gameController = GameController.Instance;       
     }
 
     private void FixedUpdate()
     {
         //Clamp Velocity
-        float maxVelocity = speed + (float)size;
         if (rb.velocity.magnitude > maxVelocity)
             rb.velocity = moveDirection * maxVelocity;
     }
 
+    public void Init()
+    {
+        SetVelocity(Random.Range(0, 360));
+    }
+
     public void SetVelocity(float angle)
     {
-        if(genericUtilities == null)
-        {
-            genericUtilities = GameController.Instance.genericUtilities;
-        }
-
-        Vector2 direction = genericUtilities.Rotate(Vector2.right, angle);
+        Vector2 direction = GenericUtilities.Rotate(Vector2.right, angle);
 
         moveAngle = angle;
 
         moveDirection = direction.normalized;
-        rb.velocity = moveDirection * (speed + (float)size);
+
+        maxVelocity = speed * (float)size;
+        rb.velocity = moveDirection * maxVelocity;
     }
 
     public void SetSize(int newSize)
@@ -74,7 +68,7 @@ public class AsteroidController : MonoBehaviour
         transform.localScale = Vector3.one * (1.6f - newSize*0.3f);
     }
 
-    public void OnDestroyAsteroid(bool destoyedByPlayer)
+    public void OnDestroyAsteroid(bool shootByPlayer)
     {
         if (size != AsteroidSize.Small)
         {
@@ -82,17 +76,19 @@ public class AsteroidController : MonoBehaviour
             {
                 float newAngle = moveAngle + Random.Range(-45, 45);
 
-                Vector2 dir = genericUtilities.Rotate(Vector2.right, newAngle);
+                Vector2 dir = GenericUtilities.Rotate(Vector2.right, newAngle);
                 Vector2 pos = (Vector2)transform.position + dir * Random.Range(0.1f, 0.75f);
 
                 AsteroidController asteroid = Instantiate(gameObject, pos, Quaternion.identity).GetComponent<AsteroidController>();
 
-                asteroid.SetVelocity(newAngle);
                 asteroid.SetSize((int)size + 1);
+                asteroid.SetVelocity(newAngle);
             }
         }
 
-        gameController.AsteroidDestoyed(pointsToAdd[(int)size - 1], destoyedByPlayer);
+        gameController.AsteroidDestoyed(pointsToAdd[(int)size - 1], shootByPlayer);
+
+        SoundController.PlayOneShot(explosions[(int)size - 1]);
 
         Destroy(gameObject);
     }

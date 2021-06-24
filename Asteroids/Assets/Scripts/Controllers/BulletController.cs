@@ -2,30 +2,26 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BulletController : MonoBehaviour
+public class BulletController : GenericSpaceObject
 {
-    private Renderer render;
-
     private bool shootByPlayer = true;
 
     [SerializeField] private float timeToDie = 1.5f;
     [SerializeField] private float speed = 10;
 
     public GameObject GetGameObject { get => gameObject; }
+    public bool ShootByPlayer { get => shootByPlayer; set => shootByPlayer = value; }
 
     private Rigidbody2D rb;
 
-    private GenericUtilities genericUtilities;
-
-    private void Awake()
+    protected override void AwakenCall()
     {
-        render = GetComponent<Renderer>();
+        base.AwakenCall();
         rb = GetComponent<Rigidbody2D>();
     }
 
     void Start()
     {
-        genericUtilities = GameController.Instance.genericUtilities;
         Invoke("DestroyOnTime", timeToDie);
     }
 
@@ -33,11 +29,6 @@ public class BulletController : MonoBehaviour
     private void DestroyOnTime()
     {
         Destroy(gameObject);
-    }
-
-    private void Update()
-    {
-        genericUtilities.WrapFromScreenEdge(transform, genericUtilities.GetScreenWrapOffset(render));
     }
 
     public void Shoot(Vector2 direction)
@@ -53,7 +44,11 @@ public class BulletController : MonoBehaviour
         }
         else if (collision.tag == "Asteroid")
         {
-            collision.GetComponent<AsteroidController>().OnDestroyAsteroid(shootByPlayer);
+            collision.GetComponent<AsteroidController>().OnDestroyAsteroid(ShootByPlayer);
+        }
+        else if(collision.tag == "Ufo")
+        {
+            collision.GetComponent<UfoController>().KillUfo(ShootByPlayer);
         }
 
         Destroy(gameObject);
